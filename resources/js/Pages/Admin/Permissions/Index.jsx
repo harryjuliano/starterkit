@@ -1,9 +1,25 @@
+import DataTable from '@/Components/DataTable';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
+import { useMemo } from 'react';
 
-export default function PermissionIndex({ permissions }) {
+export default function PermissionIndex({ permissions, filters }) {
     const createForm = useForm({ name: '' });
     const editForm = useForm({ id: null, name: '' });
+
+    const columns = useMemo(() => [
+        { key: 'name', label: 'Permission', render: (permission) => permission.name },
+        {
+            key: 'actions',
+            label: 'Aksi',
+            render: (permission) => (
+                <div className="space-x-2">
+                    <button className="rounded bg-blue-600 px-3 py-1 text-white" onClick={() => editForm.setData({ id: permission.id, name: permission.name })}>Edit</button>
+                    <button className="rounded bg-red-600 px-3 py-1 text-white" onClick={() => { if (confirm('Hapus permission ini?')) { editForm.delete(route('permissions.destroy', permission.id)); } }}>Hapus</button>
+                </div>
+            ),
+        },
+    ], [editForm]);
 
     return (
         <AuthenticatedLayout header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Permission Management</h2>}>
@@ -27,22 +43,15 @@ export default function PermissionIndex({ permissions }) {
                 </div>
             </div>
             <div className="mx-auto mb-8 max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div className="overflow-x-auto rounded-lg bg-white shadow">
-                    <table className="min-w-full text-sm">
-                        <thead><tr className="bg-gray-100 text-left"><th className="px-4 py-2">Permission</th><th className="px-4 py-2">Aksi</th></tr></thead>
-                        <tbody>
-                            {permissions.map((permission) => (
-                                <tr key={permission.id} className="border-t">
-                                    <td className="px-4 py-2">{permission.name}</td>
-                                    <td className="space-x-2 px-4 py-2">
-                                        <button className="rounded bg-blue-600 px-3 py-1 text-white" onClick={() => editForm.setData({ id: permission.id, name: permission.name })}>Edit</button>
-                                        <button className="rounded bg-red-600 px-3 py-1 text-white" onClick={() => { if (confirm('Hapus permission ini?')) { editForm.delete(route('permissions.destroy', permission.id)); } }}>Hapus</button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                <DataTable
+                    columns={columns}
+                    rows={permissions.data}
+                    getRowKey={(permission) => permission.id}
+                    routeName="permissions.index"
+                    filters={filters}
+                    searchPlaceholder="Cari permission..."
+                    pagination={permissions}
+                />
             </div>
         </AuthenticatedLayout>
     );

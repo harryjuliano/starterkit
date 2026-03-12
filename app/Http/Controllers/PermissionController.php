@@ -11,10 +11,23 @@ use Spatie\Permission\Models\Permission;
 
 class PermissionController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $search = trim((string) $request->string('search', ''));
+        $perPage = max(1, min((int) $request->integer('per_page', 10), 100));
+
+        $permissions = Permission::query()
+            ->when($search !== '', fn ($query) => $query->where('name', 'like', "%{$search}%"))
+            ->orderBy('name')
+            ->paginate($perPage)
+            ->withQueryString();
+
         return Inertia::render('Admin/Permissions/Index', [
-            'permissions' => Permission::query()->orderBy('name')->get(['id', 'name']),
+            'permissions' => $permissions,
+            'filters' => [
+                'search' => $search,
+                'per_page' => $perPage,
+            ],
         ]);
     }
 

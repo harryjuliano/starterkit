@@ -12,14 +12,28 @@ use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $search = trim((string) $request->string('search', ''));
+        $permission = trim((string) $request->string('permission', ''));
+        $perPage = max(1, min((int) $request->integer('per_page', 10), 100));
+
+        $roles = Role::query()
+            ->with('permissions:id,name')
+            ->when($search !== '', fn ($query) => $query->where('name', 'like', "%{$search}%"))
+            ->when($permission !== '', fn ($query) => $query->whereHas('permissions', fn ($permissionQuery) => $permissionQuery->where('name', $permission)))
+            ->orderBy('name')
+            ->paginate($perPage)
+            ->withQueryString();
+
         return Inertia::render('Admin/Roles/Index', [
-            'roles' => Role::query()
-                ->with('permissions:id,name')
-                ->orderBy('name')
-                ->get(['id', 'name']),
+            'roles' => $roles,
             'permissions' => Permission::query()->orderBy('name')->get(['id', 'name']),
+            'filters' => [
+                'search' => $search,
+                'permission' => $permission,
+                'per_page' => $perPage,
+            ],
         ]);
     }
 

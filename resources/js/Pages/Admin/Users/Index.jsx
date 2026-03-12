@@ -1,9 +1,11 @@
+import DataTable from '@/Components/DataTable';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
+import { useMemo } from 'react';
 
 const toRoleNames = (roles = []) => roles.map((role) => role.name);
 
-export default function UserIndex({ users, roles }) {
+export default function UserIndex({ users, roles, filters }) {
     const createForm = useForm({
         name: '',
         email: '',
@@ -29,7 +31,7 @@ export default function UserIndex({ users, roles }) {
 
     const submitUpdate = (e) => {
         e.preventDefault();
-        editForm.put(route('users.update', editForm.id), {
+        editForm.put(route('users.update', editForm.data.id), {
             preserveScroll: true,
             onSuccess: () => editForm.reset(),
         });
@@ -54,6 +56,43 @@ export default function UserIndex({ users, roles }) {
             roles: toRoleNames(user.roles),
         });
     };
+
+    const columns = useMemo(() => [
+        {
+            key: 'name',
+            label: 'Nama',
+            render: (user) => user.name,
+        },
+        {
+            key: 'email',
+            label: 'Email',
+            render: (user) => user.email,
+        },
+        {
+            key: 'roles',
+            label: 'Role',
+            render: (user) => toRoleNames(user.roles).join(', ') || '-',
+        },
+        {
+            key: 'actions',
+            label: 'Aksi',
+            render: (user) => (
+                <div className="space-x-2">
+                    <button className="rounded bg-blue-600 px-3 py-1 text-white" onClick={() => startEdit(user)}>Edit</button>
+                    <button
+                        className="rounded bg-red-600 px-3 py-1 text-white"
+                        onClick={() => {
+                            if (confirm('Hapus user ini?')) {
+                                editForm.delete(route('users.destroy', user.id), { preserveScroll: true });
+                            }
+                        }}
+                    >
+                        Hapus
+                    </button>
+                </div>
+            ),
+        },
+    ], [editForm]);
 
     return (
         <AuthenticatedLayout
@@ -111,35 +150,23 @@ export default function UserIndex({ users, roles }) {
                 </div>
 
                 <div className="mx-auto mt-6 max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="overflow-x-auto rounded-lg bg-white shadow">
-                        <table className="min-w-full text-sm">
-                            <thead>
-                                <tr className="bg-gray-100 text-left">
-                                    <th className="px-4 py-2">Nama</th>
-                                    <th className="px-4 py-2">Email</th>
-                                    <th className="px-4 py-2">Role</th>
-                                    <th className="px-4 py-2">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {users.map((user) => (
-                                    <tr key={user.id} className="border-t">
-                                        <td className="px-4 py-2">{user.name}</td>
-                                        <td className="px-4 py-2">{user.email}</td>
-                                        <td className="px-4 py-2">{toRoleNames(user.roles).join(', ') || '-'}</td>
-                                        <td className="space-x-2 px-4 py-2">
-                                            <button className="rounded bg-blue-600 px-3 py-1 text-white" onClick={() => startEdit(user)}>Edit</button>
-                                            <button className="rounded bg-red-600 px-3 py-1 text-white" onClick={() => {
-                                                if (confirm('Hapus user ini?')) {
-                                                    editForm.delete(route('users.destroy', user.id), { preserveScroll: true });
-                                                }
-                                            }}>Hapus</button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                    <DataTable
+                        columns={columns}
+                        rows={users.data}
+                        getRowKey={(user) => user.id}
+                        routeName="users.index"
+                        filters={filters}
+                        searchPlaceholder="Cari nama atau email..."
+                        filterOptions={[
+                            {
+                                key: 'role',
+                                label: 'Role',
+                                options: roles.map((role) => ({ value: role.name, label: role.name })),
+                                placeholder: 'Semua role',
+                            },
+                        ]}
+                        pagination={users}
+                    />
                 </div>
             </div>
         </AuthenticatedLayout>
