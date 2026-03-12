@@ -1,59 +1,72 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Laravel + React + Inertia Starterkit
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Starterkit ini disiapkan untuk dipakai ulang lintas proyek (SaaS, internal tools, e-commerce) dengan fokus fitur **foundational** agar setup awal tidak berulang.
 
-## About Laravel
+## Yang Sudah Tersedia
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### 1) Authentication & Authorization
+- Auth dasar Laravel Breeze (login/register/reset password/email verification).
+- RBAC dengan `spatie/laravel-permission` (roles + permissions + halaman admin CRUD).
+- Shared auth context ke frontend (`user`, `roles`, `permissions`) via Inertia middleware.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 2) Reusable UI Foundation
+- Tailwind CSS sebagai UI foundation.
+- Komponen form dasar (`Input`, `Checkbox`, `Modal`, `Button`, dll).
+- Layout terpisah: `AuthenticatedLayout` dan `GuestLayout`.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 3) Global State & Shared Data
+- Global app settings context untuk:
+  - language switcher (`en`/`id`)
+  - dark/light mode
+  - helper translasi `t(key)`
+- Flash message handler global (toast sederhana dari session Laravel).
+- Shared global props via `HandleInertiaRequests`:
+  - `auth.user`, `auth.roles`, `auth.permissions`
+  - `app.locale`, `app.available_locales`
+  - `translations` dari file `lang/{locale}.json`
+  - `flash` (`success`, `error`, `warning`, `info`)
 
-## Learning Laravel
+### 4) DX & Structure
+- Ziggy (`@routes`) sudah aktif pada blade app shell.
+- Struktur starterkit disiapkan untuk scale-up:
+  - `app/Services` (service layer)
+  - `resources/js/Hooks` (custom hooks reusable)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### 5) Fitur Pendukung Umum
+- Localization frontend (EN/ID) menggunakan file JSON Laravel (`lang/en.json`, `lang/id.json`).
+- Dark mode support berbasis Tailwind `darkMode: 'class'`, disimpan di localStorage.
+- Helper upload frontend (`useFileUpload`) sebagai pondasi upload ke local/S3.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Struktur Folder Rekomendasi
 
-## Laravel Sponsors
+| Folder | Deskripsi |
+| --- | --- |
+| `app/Services` | Logika bisnis agar controller tetap ramping |
+| `resources/js/Components` | Komponen atomik reusable |
+| `resources/js/Layouts` | Layout halaman (guest/auth/admin) |
+| `resources/js/Hooks` | Custom hooks reusable |
+| `resources/js/Pages` | Page-level components Inertia |
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Stubs / Next Step (Opsional)
 
-### Premium Partners
+Agar tetap fleksibel, fitur di bawah disiapkan sebagai **stubs/roadmap** (tidak dipaksa aktif di semua proyek):
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+- Social login (Google/GitHub) via Laravel Socialite.
+- Two-factor authentication (2FA) (Fortify/Jetstream style flow).
+- DataTable reusable dengan search/filter/pagination server-side.
+- TypeScript migration (`resources/js/Types` + strict typing page props).
+- Maintenance page khusus branding aplikasi.
 
-## Contributing
+## Quick Start
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+cp .env.example .env
+composer install
+php artisan key:generate
+php artisan migrate --seed
+npm install
+npm run dev
+php artisan serve
+```
 
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+> Jika environment CI/runner membatasi akses internet, `composer install` bisa gagal karena tidak bisa mengunduh dependensi dari GitHub/Packagist.
