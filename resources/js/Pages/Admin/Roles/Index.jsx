@@ -1,9 +1,11 @@
+import DataTable from '@/Components/DataTable';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
+import { useMemo } from 'react';
 
 const toPermissionNames = (permissions = []) => permissions.map((permission) => permission.name);
 
-export default function RoleIndex({ roles, permissions }) {
+export default function RoleIndex({ roles, permissions, filters }) {
     const createForm = useForm({ name: '', permissions: [] });
     const editForm = useForm({ id: null, name: '', permissions: [] });
 
@@ -16,6 +18,21 @@ export default function RoleIndex({ roles, permissions }) {
                 : [...form.data.permissions, permissionName],
         );
     };
+
+    const columns = useMemo(() => [
+        { key: 'name', label: 'Role', render: (role) => role.name },
+        { key: 'permissions', label: 'Permissions', render: (role) => toPermissionNames(role.permissions).join(', ') || '-' },
+        {
+            key: 'actions',
+            label: 'Aksi',
+            render: (role) => (
+                <div className="space-x-2">
+                    <button className="rounded bg-blue-600 px-3 py-1 text-white" onClick={() => editForm.setData({ id: role.id, name: role.name, permissions: toPermissionNames(role.permissions) })}>Edit</button>
+                    <button className="rounded bg-red-600 px-3 py-1 text-white" onClick={() => { if (confirm('Hapus role ini?')) { editForm.delete(route('roles.destroy', role.id)); } }}>Hapus</button>
+                </div>
+            ),
+        },
+    ], [editForm]);
 
     return (
         <AuthenticatedLayout header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Role Management</h2>}>
@@ -49,23 +66,23 @@ export default function RoleIndex({ roles, permissions }) {
                 </div>
             </div>
             <div className="mx-auto mb-8 max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div className="overflow-x-auto rounded-lg bg-white shadow">
-                    <table className="min-w-full text-sm">
-                        <thead><tr className="bg-gray-100 text-left"><th className="px-4 py-2">Role</th><th className="px-4 py-2">Permissions</th><th className="px-4 py-2">Aksi</th></tr></thead>
-                        <tbody>
-                            {roles.map((role) => (
-                                <tr key={role.id} className="border-t">
-                                    <td className="px-4 py-2">{role.name}</td>
-                                    <td className="px-4 py-2">{toPermissionNames(role.permissions).join(', ') || '-'}</td>
-                                    <td className="space-x-2 px-4 py-2">
-                                        <button className="rounded bg-blue-600 px-3 py-1 text-white" onClick={() => editForm.setData({ id: role.id, name: role.name, permissions: toPermissionNames(role.permissions) })}>Edit</button>
-                                        <button className="rounded bg-red-600 px-3 py-1 text-white" onClick={() => { if (confirm('Hapus role ini?')) { editForm.delete(route('roles.destroy', role.id)); } }}>Hapus</button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                <DataTable
+                    columns={columns}
+                    rows={roles.data}
+                    getRowKey={(role) => role.id}
+                    routeName="roles.index"
+                    filters={filters}
+                    searchPlaceholder="Cari role..."
+                    filterOptions={[
+                        {
+                            key: 'permission',
+                            label: 'Permission',
+                            options: permissions.map((permission) => ({ value: permission.name, label: permission.name })),
+                            placeholder: 'Semua permission',
+                        },
+                    ]}
+                    pagination={roles}
+                />
             </div>
         </AuthenticatedLayout>
     );
